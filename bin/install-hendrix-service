@@ -1,0 +1,46 @@
+#!/Users/johngrant/Documents/thisfeedisalwaysforsale/bin/python3.7
+
+import argparse
+import os
+import sys
+
+from hendrix.utils.conf import generateInitd
+
+parser = argparse.ArgumentParser(
+    description="Installs Hendrix as a service on Linux systems",
+    usage="[sudo] install-hendrix-service hxconf.yml"
+)
+parser.add_argument('conf_path', help='Path to hendrix config file [yaml]', type=str)
+
+
+def main():
+    if 'linux' not in sys.platform:
+        raise RuntimeError("Only run this script on linux machines.")
+
+    parsed_args = parser.parse_args(sys.argv[1:])
+    conf_path = parsed_args.conf_path
+
+    if not os.path.exists(conf_path):
+        raise RuntimeError("The configuration file specified does not exist.")
+
+    initd = generateInitd(conf_path)
+    initd_path = '/etc/init.d/hendrix'
+
+    with open(initd_path, 'w') as hendrix_initd:
+        hendrix_initd.write(initd)
+
+    os.chmod(initd_path, 0751)
+
+    msg = (
+        '\033[94mHendrix is now installed as a system wide service\n'
+        '\t\033[92msudo service hendrix start\n'
+        '\033[94mThe above command will start the service\n'
+        'enjoy...\033[0m'
+    )
+
+    print
+    msg
+
+
+if __name__ == "__main__":
+    main()
