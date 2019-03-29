@@ -11,7 +11,8 @@ $(document).ready(function () {
         success: function (data) {
           if (data.policy_pubkey) {
             console.log(data.policy_pubkey);
-            $("#policy_pubkey").text('Policy Pub Key: ' + data.policy_pubkey);
+            $("#policy_pubkey_hex").text(data.policy_pubkey);
+            $("#enrico_pubkey_hex").text(data.enrico_pubkey);
           }
         }
     })
@@ -21,14 +22,20 @@ $(document).ready(function () {
   $("#create-post").click(function() {
     var post = $("#post").val();
     console.log('Saving Post: ' + post);
+    var policy_pubkey_hex = $("#policy_pubkey_hex").text();
+    var enrico_pubkey_hex = $("#enrico_pubkey_hex").text();
 
     $.ajax({
         type: "POST",
         url: 'add_post/',
         dataType: 'html',
-        data: {'post': post},
+        data: {
+          'post': post,
+          'policy_pubkey_hex': policy_pubkey_hex,
+          'enrico_pubkey_hex': enrico_pubkey_hex
+        },
         success: function (data) {
-          $("#posts").prepend(data);
+          $("#posts").append(data);
         }
     })
   });

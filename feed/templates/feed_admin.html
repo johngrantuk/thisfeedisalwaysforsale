@@ -20,7 +20,8 @@
         <p class="card-text">Passphrase: {{ feed.alice_passphrase }}</p>
         <p class="card-text">Policy Label: {{ feed.label_string }}</p>
         <p class="card-text">Description: {{ feed.description }}</p>
-        <p id='policy_pubkey' class="card-text">Policy Pub Key: {{ feed.policy_pubkey }}</p>
+        <p class="card-text">Policy Pub Key (Hex): <span id='policy_pubkey_hex'>{{ feed.policy_pubkey_hex }}</span></p>
+        <p class="card-text">Enrico Pub Key (Hex): <span id='enrico_pubkey_hex'>{{ feed.enrico_pubkey_hex }}</span></p>
         <a id="create-policy" class="btn btn-primary">Create Policy</a>
       </div>
     </div>
@@ -38,7 +39,11 @@
       </div>
     </div>
 
-    <div id='posts'></div>
+    <div id='posts'>
+      {% for post in posts %}
+        <p>{{post.created_date}} {{post.content}} {{post.enrico_pubkey_hex}}</p>
+      {% endfor %}
+    </div>
 
   </div>
 

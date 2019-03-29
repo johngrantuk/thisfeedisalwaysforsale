@@ -10,7 +10,8 @@ class Feed(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     created_date = models.DateTimeField(default=timezone.now)
-    policy_pubkey = models.CharField(max_length=2000, default='Not Created')
+    policy_pubkey_hex = models.CharField(max_length=2000, default='Not Created')
+    enrico_pubkey_hex = models.CharField(max_length=2000, default='Not Created')
 
     """
     def publish(self):
@@ -23,9 +24,9 @@ class Feed(models.Model):
 
 
 class Post(models.Model):
-    title = models.CharField(max_length=200)
-    content = models.TextField()
+    content = models.CharField(max_length=2000, default='Not Created')
+    enrico_pubkey_hex = models.CharField(max_length=2000, default='Not Created')
     created_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return self.title + ": " + self.content
+        return self.content
