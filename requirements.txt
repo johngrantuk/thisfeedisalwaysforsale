@@ -19,6 +19,7 @@ constantly==15.1.0
 cryptography==2.6.1
 cytoolz==0.9.0.1
 dateparser==0.7.1
+dj-database-url==0.5.0
 Django==2.1.7
 docutils==0.14
 eth-abi==2.0.0b6
@@ -35,6 +36,7 @@ ethpm==0.1.4a13
 Flask==1.0.2
 Flask-Limiter==1.0.1
 Flask-SQLAlchemy==2.3.2
+gunicorn==19.9.0
 hendrix==3.2.2
 hexbytes==0.1.0
 humanize==0.5.1
@@ -57,6 +59,7 @@ parsimonious==0.8.1
 pathtools==0.1.2
 pendulum==2.0.4
 protobuf==3.7.0
+psycopg2==2.8
 py-ecc==1.6.0
 py-evm==0.2.0a39
 py-geth==2.1.0
@@ -72,6 +75,7 @@ pyOpenSSL==19.0.0
 pysha3==1.0.2
 pytest-ethereum==0.1.3a6
 python-dateutil==2.8.0
+python-dotenv==0.10.1
 pytz==2018.9
 pytzdata==2018.9
 PyYAML==5.1
@@ -96,4 +100,5 @@ watchdog==0.9.0
 web3==5.0.0a8
 websockets==7.0
 Werkzeug==0.15.1
+whitenoise==4.1.2
 zope.interface==4.6.0
