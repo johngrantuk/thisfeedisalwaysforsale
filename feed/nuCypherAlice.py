@@ -93,7 +93,7 @@ def GrantPolicy(Alice, Label, BobPublicKeyEnc, BobPublicKeySig):
     policy_end_datetime = maya.now() + datetime.timedelta(days=5)
     # - m-out-of-n: This means Alicia splits the re-encryption key in 5 pieces and
     #               she requires Bob to seek collaboration of at least 3 Ursulas
-    m, n = 2, 3
+    m, n = 1, 1
 
     Label = Label.encode()
     # With this information, Alicia creates a policy granting access to Bob.

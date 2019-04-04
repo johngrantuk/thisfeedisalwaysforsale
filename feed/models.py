@@ -25,6 +25,7 @@ class Feed(models.Model):
 
 class Post(models.Model):
     content = models.CharField(max_length=2000, default='Not Created')
+    signature = models.CharField(max_length=2000, default='Not Created')
     enrico_pubkey_hex = models.CharField(max_length=2000, default='Not Created')
     created_date = models.DateTimeField(default=timezone.now)
 
