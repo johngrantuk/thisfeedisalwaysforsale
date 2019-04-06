@@ -12,6 +12,9 @@ class Feed(models.Model):
     created_date = models.DateTimeField(default=timezone.now)
     policy_pubkey_hex = models.CharField(max_length=2000, default='Not Created')
     enrico_pubkey_hex = models.CharField(max_length=2000, default='Not Created')
+    art_steward_address = models.CharField(max_length=2000, default='0x13a225FB5533bF144F8c484e0E5eD09A6aaDc45c')
+    erc721_address = models.CharField(max_length=2000, default='0xe5560289be2a80826ea72dB95e0b14379A7C4d3E')
+    provider = models.CharField(max_length=2000, default='http://127.0.0.1:8545')
 
     """
     def publish(self):

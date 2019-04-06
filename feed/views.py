@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from .models import Feed, Post
 from . import nuCypherHelper, nuCypherAlice, nuCypherBob, nuCypherEnrico
 from django.views.decorators.csrf import csrf_exempt
@@ -8,8 +8,11 @@ from nucypher.characters.lawful import Enrico
 from nucypher.crypto.kits import UmbralMessageKit
 import os
 from umbral.signing import Signature
+
 from web3.auto import w3
+from web3 import Web3, HTTPProvider
 from eth_account.messages import defunct_hash_message
+from . import contracts_abi
 
 
 alice = None
@@ -46,6 +49,30 @@ def create_policy(request):
         feed.policy_pubkey_hex = policy_pubkey_hex
         feed.enrico_pubkey_hex = enrico_pubkey_hex
         feed.save()
+
+        # delete all old posts
+        posts = Post.objects.all()
+        if posts.exists():
+            posts.delete()
+
+        # encrypt and save new posts
+        policy_pubkey = UmbralPublicKey.from_bytes(bytes.fromhex(policy_pubkey_hex))
+        # enrico_pubkey = UmbralPublicKey.from_bytes(bytes.fromhex(enrico_pubkey_hex))
+        post = "Me and Kyle on holiday."
+        print('Encrypting post: ')
+        print(post)
+
+        message_kit, _signature = enrico.encrypt_message(post.encode())
+        p = Post(content=message_kit.to_bytes().hex(), enrico_pubkey_hex=bytes(enricos_pubkey).hex(), signature=bytes(_signature).hex())
+        p.save()
+
+        post = "Me and Kyle walking down a long and lonesome road."
+        print('Encrypting post: ')
+        print(post)
+
+        message_kit, _signature = enrico.encrypt_message(post.encode())
+        p = Post(content=message_kit.to_bytes().hex(), enrico_pubkey_hex=bytes(enricos_pubkey).hex(), signature=bytes(_signature).hex())
+        p.save()
 
         data = {
             'policy_pubkey_hex': policy_pubkey_hex,
@@ -94,7 +121,18 @@ def feed(request):
 
     feed = Feed.objects.all()[0]
     posts = Post.objects.all()
-    return render(request, 'feed.html', {'feed': feed, 'posts': posts})
+
+    w3t = Web3(HTTPProvider(feed.provider))
+    erc721_contract = w3t.eth.contract(address=feed.erc721_address, abi=contracts_abi.erc721)
+    steward_contract = w3t.eth.contract(address=feed.art_steward_address, abi=contracts_abi.artSteward)
+
+    patron = erc721_contract.functions.ownerOf(42).call()
+    price = steward_contract.functions.price().call()
+    price_ether = w3t.fromWei(price, 'ether')
+    print(price)
+    print(price_ether)
+
+    return render(request, 'feed.html', {'feed': feed, 'posts': posts, 'patron': patron, 'price': price_ether})
 
 
 @csrf_exempt
@@ -111,6 +149,17 @@ def decrypt(request):
 
     print("!!!!!!! DECRYPTING FEED !!!!!")
     feed = Feed.objects.all()[0]
+
+    w3t = Web3(HTTPProvider(feed.provider))
+    contract = w3t.eth.contract(address=feed.erc721_address, abi=contracts_abi.erc721)
+    owner = contract.functions.ownerOf(42).call()
+    print('Owner: ' + owner)
+    print('Recovered: ' + account)
+
+    if owner != account:
+        print("NOT OWNER")
+        return HttpResponse("CHEEKY MONKEY!")
+
     posts = Post.objects.all()
 
     labelStr = feed.label_string
@@ -130,24 +179,7 @@ def decrypt(request):
         print(str(post.created_date) + ": " + cleartext)
         decrypted_posts.append({'date': str(post.created_date), 'content': cleartext})
 
-    """
-    print("Alice Pub Key:")
-    print(bytes(alice_pub_key).hex())
-    decrypted = nuCypherBob.DecryptData(bob_one, labelStr, message_kit, enricos_pubkey, policy_pubkey, alice_pub_key)
-    post_str = decrypted[0].decode()
-    print('Decrypted Info:')
-    print(post_str)
-
-    for post in posts:
-        message_kit = UmbralMessageKit.from_bytes(bytes.fromhex(post.content))
-        enricos_pubkey = UmbralPublicKey.from_bytes(bytes.fromhex(post.enrico_pubkey_hex))
-        decrypted = nuCypherBob.DecryptData(bob_one, labelStr, message_kit, enricos_pubkey, policy_pubkey, alice_pub_key)
-        post_str = decrypted[0].decode()
-        print(post.created_date + ": " + post_str)
-        decrypted_posts.append({'date': post.created_date, 'content': post_str})
-    """
     return render(request, 'posts.html', {'posts': decrypted_posts})
-
 
 
 def decryptOld(request):
