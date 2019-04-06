@@ -2,6 +2,7 @@ $(document).ready(function () {
 
   console.log('Web3 test')
   var Web3 = require('web3');
+  var account;
   // var web3 = window.web3;
 
   if (window.ethereum) { // for modern DApps browser
@@ -9,7 +10,7 @@ $(document).ready(function () {
       try {
           ethereum.enable().then(function (result){
             console.log(web3.version)
-            var account = web3.eth.accounts[0];
+            account = web3.eth.accounts[0];
             console.log(account);
           });
       } catch (error) {
@@ -64,34 +65,30 @@ $("#load").click(function() {
 })
 
 $("#buyfeed").click(function() {
+  var priceEth = $('#salePrice').val();
+  var depositEth = $('#deposit').val();
+
   console.log('Buy feed');
-  // var steward = new web3.eth.contract(artSteward, '0x13a225FB5533bF144F8c484e0E5eD09A6aaDc45c');
+  console.log(priceEth)
+  console.log(depositEth)
+
   var steward= web3.eth.contract(artSteward).at('0x13a225FB5533bF144F8c484e0E5eD09A6aaDc45c');
-  // steward.buy(web3.utils.toWei('0.1', 'ether'), { from: account, value: web3.utils.toWei('0.1', 'ether') });
-  steward.buy.sendTransaction(web3.toWei('0.1', 'ether'), {
+  steward.buy.sendTransaction(web3.toWei(priceEth, 'ether'), {
       from: web3.eth.accounts[0],
-      value: web3.toWei('0.1', 'ether')
+      value: web3.toWei(priceEth, 'ether')
     },
-  (err, res) => { console.log('Done?') });
-    /*
-  steward.methods.buy(web3.utils.toWei('0.1', 'ether')).send(
-    { from: account,
-      value: web3.utils.toWei('0.1', 'ether')
+  (err, res) => {
+    if(err){
+      console.log('Error');
+      if(err.message.indexOf('revert Not enough') !== -1)
+        alert('Not Enough');
+      else
+        console.log(err)
+    }else{
+      $('#currentPrice').html('Current Price (ETH): ' + priceEth);
+      $('#currentPatron').html('Current Patron: ' + web3.eth.accounts[0]);
     }
-  ).then(function (result) {
-    console.log(result);
-    });
-    */
-  /*
-  const { logs } = await steward.buy(web3.utils.toWei('1', 'ether'), { from: accounts[2], value: web3.utils.toWei('1', 'ether') });
-    expectEvent.inLogs(logs, 'LogBuy', { owner: accounts[2], price: ether('1')});
-    const deposit = await steward.deposit.call();
-    const price = await steward.price.call();
-    const state = await steward.state.call();
-    assert.equal(deposit, web3.utils.toWei('1', 'ether'));
-    assert.equal(price, web3.utils.toWei('1', 'ether'));
-    assert.equal(state, 1);
-    */
+  });
 
 })
 

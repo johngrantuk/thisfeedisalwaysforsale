@@ -18,18 +18,22 @@
     <p class="lead">Some stuff about the idea.</p>
     <hr class="my-4">
     <h3>Buy Feed</h3>
-    <p>Current Price (ETH): {{ price }}</p>
-    <p>Current Patron: {{ patron }}</p>
+    <p id='currentPrice'>Current Price (ETH): {{ price }}</p>
+    <p id='currentPatron'>Current Patron: {{ patron }}</p>
     <form>
       <div class="form-group">
-        <label for="post">Your sale price (ETH):</label>
-        <input type="text" class="form-control" id="post" placeholder="ETH: Your Initial Sale Price">
+        <label for="salePrice">Your sale price (ETH):</label>
+        <input type="text" class="form-control" id="salePrice" placeholder="ETH: Your Initial Sale Price">
       </div>
       <div class="form-group">
-        <label for="post">Your deposit (ETH):</label>
-        <input type="text" class="form-control" id="post" placeholder="ETH: Your Initial Deposit">
+        <label for="deposit">Your deposit (ETH):</label>
+        <input type="text" class="form-control" id="deposit" placeholder="ETH: Your Initial Deposit">
       </div>
       <a id="buyfeed" class="btn btn-primary btn-lg" role="button">BUY FEED</a>
+      <hr class="my-4">
+      <h3>Decrypt Feed</h3>
+      <p>Some info about decrypt, etc</p>
+      <a id="load" class="btn btn-primary btn-lg" role="button">ARE YOU THE OWNER?<br>(Click Here To Decrypt)</a>
     </form>
   </div>
 
@@ -38,7 +42,7 @@
 
       <div class="card-body">
 
-        <a id="load" class="btn btn-primary btn-lg" role="button">ARE YOU THE OWNER?<br>(Click Here To Decrypt)</a>
+
 
         <div id="posts">
         {% for post in posts %}

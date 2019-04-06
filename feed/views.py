@@ -158,7 +158,8 @@ def decrypt(request):
 
     if owner != account:
         print("NOT OWNER")
-        return HttpResponse("CHEEKY MONKEY!")
+        return render(request, 'cheeky.html')
+        # return HttpResponse("CHEEKY MONKEY!")
 
     posts = Post.objects.all()
 
