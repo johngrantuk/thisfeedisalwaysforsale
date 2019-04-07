@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from .models import Feed, Post
 from . import nuCypherHelper, nuCypherAlice, nuCypherBob, nuCypherEnrico
 from django.views.decorators.csrf import csrf_exempt
@@ -14,18 +14,22 @@ from web3 import Web3, HTTPProvider
 from eth_account.messages import defunct_hash_message
 from . import contracts_abi
 
-
-alice = None
-enrico = None   # Enrcio needs to be consistent
+alice = None    # Alice needs to be persistent. See below and readme for my attempts.
+enrico = None   # Enrcio needs to be persistent.
 
 def feed_admin(request):
-
+    """Allows creation of feed and addition of posts."""
     feed = Feed.objects.all()[0]
     posts = Post.objects.all()
     return render(request, 'feed_admin.html', {'feed': feed, 'posts': posts})
 
 
 def create_policy(request):
+    """
+    This uses an Alice to create a Policy for the feed using a label.
+    Also creates an Enrico that will encrypt the feed posts.
+    As part of the demo setup I create some example posts and encrypt them.
+    """
     global alice, enrico
 
     if request.is_ajax():
@@ -50,15 +54,15 @@ def create_policy(request):
         feed.enrico_pubkey_hex = enrico_pubkey_hex
         feed.save()
 
-        # delete all old posts
+        # delete all old posts - just for demo
         posts = Post.objects.all()
         if posts.exists():
             posts.delete()
 
-        # encrypt and save new posts
+        # encrypt and save new posts - just for demo
         policy_pubkey = UmbralPublicKey.from_bytes(bytes.fromhex(policy_pubkey_hex))
         # enrico_pubkey = UmbralPublicKey.from_bytes(bytes.fromhex(enrico_pubkey_hex))
-        post = "Me and Kyle on holiday."
+        post = "Me and Kyle are hitchhiking down a long and lonesome road 🛣️ 🌕 "
         print('Encrypting post: ')
         print(post)
 
@@ -66,7 +70,15 @@ def create_policy(request):
         p = Post(content=message_kit.to_bytes().hex(), enrico_pubkey_hex=bytes(enricos_pubkey).hex(), signature=bytes(_signature).hex())
         p.save()
 
-        post = "Me and Kyle walking down a long and lonesome road."
+        post = "😈 Just came across a shiny demon in the middle of the road - he threatened to eat our soles unless we played the best song in the world 🤣"
+        print('Encrypting post: ')
+        print(post)
+
+        message_kit, _signature = enrico.encrypt_message(post.encode())
+        p = Post(content=message_kit.to_bytes().hex(), enrico_pubkey_hex=bytes(enricos_pubkey).hex(), signature=bytes(_signature).hex())
+        p.save()
+
+        post = "One and one makes two, two and one makes three"
         print('Encrypting post: ')
         print(post)
 
@@ -83,7 +95,7 @@ def create_policy(request):
 
 @csrf_exempt
 def add_post(request):
-
+    """Add a new post to the db by encrypting using Enrico. This could be saved anywhere, i.e. IPFS, etc."""
     global enrico
 
     if request.is_ajax():
@@ -118,7 +130,7 @@ def add_post(request):
 
 
 def feed(request):
-
+    """Gets the encrypted feed info. Also gets current Patron and Price of the feed from the smart contract."""
     feed = Feed.objects.all()[0]
     posts = Post.objects.all()
 
@@ -137,34 +149,32 @@ def feed(request):
 
 @csrf_exempt
 def decrypt(request):
+    """
+    Checks signature passed from UI against Patron owner from Smart Contract to see if the user is really the owner. If they are it decrypts the feed info.
+    This is kind of a hacky method because I couldn't get the way I wanted it to work (see below) because of a strange issue.
+    """
     global alice, enrico
 
-    signature = request.POST.get('signature')
+    signature = request.POST.get('signature')                                               # Signature from UI via MetaMask
     print("Signature: " + signature)
 
-    message_hash = defunct_hash_message(text='I am signing this nonce')
-    account = w3.eth.account.recoverHash(message_hash, signature=signature)
+    message_hash = defunct_hash_message(text='This is a signed message used to verify you are from the account you say. It costs nothing to do.')
+    account = w3.eth.account.recoverHash(message_hash, signature=signature)                 # Recovers account info from hash
 
-    print(account)
-
-    print("!!!!!!! DECRYPTING FEED !!!!!")
     feed = Feed.objects.all()[0]
 
-    w3t = Web3(HTTPProvider(feed.provider))
+    w3t = Web3(HTTPProvider(feed.provider))                                                 # Getting Patron info from Smart Contract
     contract = w3t.eth.contract(address=feed.erc721_address, abi=contracts_abi.erc721)
     owner = contract.functions.ownerOf(42).call()
     print('Owner: ' + owner)
     print('Recovered: ' + account)
 
-    if owner != account:
+    if owner != account:                                                                    # Check if owner matches user
         print("NOT OWNER")
         return render(request, 'cheeky.html')
-        # return HttpResponse("CHEEKY MONKEY!")
 
-    posts = Post.objects.all()
-
+    posts = Post.objects.all()                                                              # Is owner so decrypt post data
     labelStr = feed.label_string
-
     decrypted_posts = []
 
     for post in posts:
@@ -178,12 +188,18 @@ def decrypt(request):
 
         cleartext = cleartext.decode()
         print(str(post.created_date) + ": " + cleartext)
-        decrypted_posts.append({'date': str(post.created_date), 'content': cleartext})
+        decrypted_posts.append({'created_date': post.created_date, 'content': cleartext})
 
     return render(request, 'posts.html', {'posts': decrypted_posts})
 
 
 def decryptOld(request):
+    """
+    This is how I think it would be better to decrypt the data as then multiple devices could do the decryption via multiple Bobs that are granted access to policy.
+    This was failing in Django:
+    With a persistent Alice running in Django I keep getting this weird error -
+    Internal Server Error: /decrypt/ Traceback (most recent call last): File "/Users/johngrant/Documents/thisfeedisalwaysforsale/lib/python3.7/site-packages/django/core/handlers/exception.py", line 34, in inner response = get_response(request) File "/Users/johngrant/Documents/thisfeedisalwaysforsale/lib/python3.7/site-packages/django/core/handlers/base.py", line 126, in _get_response response = self.process_exception_by_middleware(e, request) File "/Users/johngrant/Documents/thisfeedisalwaysforsale/lib/python3.7/site-packages/django/core/handlers/base.py", line 124, in _get_response response = wrapped_callback(request, *callback_args, **callback_kwargs) File "/Users/johngrant/Documents/thisfeedisalwaysforsale/feed/views.py", line 131, in decrypt decrypted = nuCypherBob.DecryptData(bob_one, labelStr, message_kit, enricos_pubkey, policy_pubkey, alice_pub_key) File "/Users/johngrant/Documents/thisfeedisalwaysforsale/feed/nuCypherBob.py", line 105, in DecryptData alice_verifying_key=alices_sig_pubkey File "/Users/johngrant/Documents/thisfeedisalwaysforsale/lib/python3.7/site-packages/nucypher/characters/lawful.py", line 587, in retrieve raise Ursula.NotEnoughUrsulas("Unable to snag m cfrags.") nucypher.characters.lawful.Ursula.NotEnoughUrsulas: Unable to snag m cfrags. I changed m/n for the policy to 1 and still get the same. 
+    """
     global alice
 
     print("!!!!!!! DECRYPTING FEED !!!!!")

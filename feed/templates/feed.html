@@ -15,7 +15,19 @@
 
   <div class="jumbotron">
     <h1 class="display-4">This Feed Is Always On Sale</h1>
-    <p class="lead">Some stuff about the idea.</p>
+    <p class="lead">
+      Access to the feed below is always on sale.
+      <br>In order to own this access, you always have to specify a sale price.
+      <br>Anyone can buy it from the current patron at any time for the specified sale price.
+      Whilst held, a 5% fee (pa) is levied as patronage towards the feed owner.
+    <hr class="my-4">
+    <h3>Hackathon Idea</h3>
+      <br>The idea and
+      <a href="https://github.com/simondlr/thisartworkisalwaysonsale" target="_blank">contracts</a> were taken from Simon de la Rouvieres
+      <a href="https://thisartworkisalwaysonsale.com" target="_blank">'This Artwork Is Always On Sale'</a> - it's a cool implementation of a Harberger Tax.
+      <br>My idea was to tweak the concept a little - NuCypher is used to encrypt the feed, then only the Patron can decrypt (using NuCypher) to get access.
+      <br>The concept could be extended to have more than one Patron and could also be used for other kinds of feed data such as sensor data, camera/video feeds, music, etc.
+    </p>
     <hr class="my-4">
     <h3>Buy Feed</h3>
     <p id='currentPrice'>Current Price (ETH): {{ price }}</p>
@@ -32,7 +44,6 @@
       <a id="buyfeed" class="btn btn-primary btn-lg" role="button">BUY FEED</a>
       <hr class="my-4">
       <h3>Decrypt Feed</h3>
-      <p>Some info about decrypt, etc</p>
       <a id="load" class="btn btn-primary btn-lg" role="button">ARE YOU THE OWNER?<br>(Click Here To Decrypt)</a>
     </form>
   </div>
@@ -41,12 +52,14 @@
       <h5 class="card-header">{{ feed.title }} Posts</h5>
 
       <div class="card-body">
-
-
-
         <div id="posts">
         {% for post in posts %}
-          <p>{{post.created_date}} {{post.content}} {{post.enrico_pubkey_hex}}</p>
+            <div class="card">
+              <h5 class="card-header">{{post.created_date|date:"M d, Y H:i:s"}}</h5>
+              <div class="card-body">
+                {{post.content}}
+              </div>
+            </div>
         {% endfor %}
         </div>
       </div>

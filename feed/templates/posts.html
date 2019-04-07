@@ -1,3 +1,8 @@
 {% for post in posts %}
-  <p>{{post.date}} {{post.content}}</p>
+  <div class="card">
+    <h5 class="card-header">{{post.created_date|date:"M d, Y H:i:s"}}</h5>
+    <div class="card-body">
+      {{post.content}}
+    </div>
+  </div>
 {% endfor %}

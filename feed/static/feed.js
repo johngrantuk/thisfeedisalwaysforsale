@@ -3,7 +3,6 @@ $(document).ready(function () {
   console.log('Web3 test')
   var Web3 = require('web3');
   var account;
-  // var web3 = window.web3;
 
   if (window.ethereum) { // for modern DApps browser
       window.web3 = new Web3(ethereum);
@@ -21,26 +20,12 @@ $(document).ready(function () {
   } else {
       console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
   }
-/*
-if(typeof web3 !== 'undefined') {
-    console.log("Using web3 detected from external source like Metamask");
-    web3 = new Web3(web3.currentProvider);
-} else {
-    console.log("Using localhost");
-    web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
-}
-
-console.log(web3.version)
-var account = web3.eth.accounts[0];
-console.log(account);
-*/
-
 
 $("#load").click(function() {
 
   // Need to load a nonce on page load
   signature = web3.personal.sign(
-    web3.fromUtf8('I am signing this nonce'),
+    web3.fromUtf8('This is a signed message used to verify you are from the account you say. It costs nothing to do.'),
       account,
       (err, signature) => {
           console.log('Sig:');
