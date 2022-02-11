@@ -58,7 +58,7 @@ nucypher==0.1.0a21
 parsimonious==0.8.1
 pathtools==0.1.2
 pendulum==2.0.4
-protobuf==3.7.0
+protobuf==3.15.0
 psycopg2==2.8
 py-ecc==1.6.0
 py-evm==0.2.0a39
